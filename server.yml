@@ -1,0 +1,20 @@
+#cloud-config
+apt_update: true
+packages:
+  - openvpn
+  - easy-rsa
+  - nginx
+write_files: 
+  - path: /tmp/server-base.config
+    owner: root:root
+    permissions: "0644"
+    content:  |
+      local LOCAL
+      server ${vpn_network_ip} ${vpn_subnet_mask}
+runcmd:
+##  - LOCALIP=$(ip route get 8.8.8.8 | awk -F"src " 'NR==1{split($2,a," ");print a[1]}')
+  - LOCALIP=$(hostname -I)
+  - cp /usr/share/doc/openvpn/examples/sample-config-files/server.conf /etc/openvpn/server.conf
+  - echo "config server-base.config" >> /etc/openvpn/server.conf
+  - cp /tmp/server-base.config /etc/openvpn
+  - sed -i -e "s/LOCAL/$LOCALIP/" /etc/openvpn/server-base.config
